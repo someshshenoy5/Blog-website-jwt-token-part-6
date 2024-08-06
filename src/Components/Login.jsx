@@ -1,46 +1,62 @@
-import axios from "axios";
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
+import { AppContext } from "../AppContext";
+import { loginUser, registerUser } from "../api";
 
 const Login = () => {
   const [isLogin, setIsLogin] = useState(true);
-  const [userName, setUserName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [address, setAddress] = useState("");
-  const [password, setPassword] = useState("");
+  const [formData, setFormData] = useState({
+    userName: "",
+    email: "",
+    phoneNumber: "",
+    address: "",
+    password: "",
+  });
+  const [error, setError] = useState("");
   const navigate = useNavigate();
+  const { setToken } = useContext(AppContext);
 
   const toggleMode = () => {
     setIsLogin(!isLogin);
-    
+  };
+
+  const handleInputChange = (event) => {
+    const { name, value } = event.target;
+    setFormData({ ...formData, [name]: value });
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    if (isLogin) {
-      const response = await axios.post("http://localhost:8080/auth/login", {
-        userName,
-        password,
-      });
-      const token = response.data;
-      console.log("Token:", token);
-      localStorage.setItem("token", token);
-      navigate("/");
-    } else {
-      const response = await axios.post("http://localhost:8080/auth/addUser", {
-        userName,
-        email,
-        phoneNumber,
-        address,
-        password,
-      });
-      const token = response.data;
-      console.log("Token:", token);
-      localStorage.setItem("token", token);
+    setError("");
+    try {
+      if (isLogin) {
+        const token = await loginUser(formData.userName, formData.password);
+        localStorage.setItem("token", token);
+        setToken(token);
+        console.log("Token:", token);
+        navigate("/");
+      } else {
+        await registerUser({
+          userName: formData.userName,
+          email: formData.email,
+          phoneNumber: formData.phoneNumber,
+          address: formData.address,
+          password: formData.password,
+        });
+        alert("User added successfully! Please login.");
+        setIsLogin(true);
+        setFormData({
+          userName: "",
+          email: "",
+          phoneNumber: "",
+          address: "",
+          password: "",
+        });
+      }
+    } catch (err) {
+      console.error("Error:", err);
+      setError("Failed to login/sign up. Please check your credentials.");
     }
-
-    navigate("/");
   };
 
   return (
@@ -51,9 +67,6 @@ const Login = () => {
             <span className="login100-form-title p-b-26">
               {isLogin ? "Login" : "Sign Up"}
             </span>
-            {/* <span className="login100-form-title p-b-48">
-            <i className="zmdi zmdi-font"></i>
-          </span> */}
 
             <div
               className="wrap-input100 validate-input"
@@ -62,9 +75,9 @@ const Login = () => {
               <input
                 className="input100"
                 type="text"
-                name="username"
-                value={userName}
-                onChange={(e) => setUserName(e.target.value)}
+                name="userName"
+                value={formData.userName}
+                onChange={handleInputChange}
                 required
               />
               <span
@@ -83,8 +96,8 @@ const Login = () => {
                     className="input100"
                     type="email"
                     name="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    value={formData.email}
+                    onChange={handleInputChange}
                     required
                   />
                   <span
@@ -101,8 +114,8 @@ const Login = () => {
                     className="input100"
                     type="tel"
                     name="phoneNumber"
-                    value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    value={formData.phoneNumber}
+                    onChange={handleInputChange}
                     required
                   />
                   <span
@@ -119,8 +132,8 @@ const Login = () => {
                     className="input100"
                     type="text"
                     name="address"
-                    value={address}
-                    onChange={(e) => setAddress(e.target.value)}
+                    value={formData.address}
+                    onChange={handleInputChange}
                     required
                   />
                   <span
@@ -141,9 +154,9 @@ const Login = () => {
               <input
                 className="input100"
                 type="password"
-                name="pass"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                name="password"
+                value={formData.password}
+                onChange={handleInputChange}
                 required
               />
               <span
@@ -151,6 +164,8 @@ const Login = () => {
                 data-placeholder="Password"
               ></span>
             </div>
+
+            {error && <div className="error-message" style={{color: "grey"}}>{error}</div>}
 
             <div className="container-login100-form-btn">
               <div className="wrap-login100-form-btn">
