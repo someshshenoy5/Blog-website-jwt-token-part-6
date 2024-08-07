@@ -108,7 +108,7 @@ const Navbar = () => {
             <a href="/addBlog">Add Article</a>
           </li>
           <li>
-            <a href="#">Blog</a>
+            <a href="/login">Login</a>
           </li>
           <li>
             <form className="search-form">

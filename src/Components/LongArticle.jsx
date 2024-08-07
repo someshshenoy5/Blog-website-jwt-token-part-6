@@ -39,7 +39,7 @@ const LongArticle = () => {
   };
 
   if (isError) {
-    return <div>Error: {isError.message}</div>;
+    return <div className="text-center-error">Error: Unable to fetch data by ID. Please check your backend code.</div>;
   }
   if (!selectedBlog) {
     return <div>Loading...</div>;
